@@ -1,0 +1,44 @@
+# Log files
+*.log
+*.txt
+!README.md
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Personal configuration (if you want to keep your paths private)
+# Uncomment the line below if you want to ignore the script with your personal paths
+# PhotoImportPipeline.sh
+
+# Test files
+test/
+tests/
+*.test
+
+# Archive files
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
