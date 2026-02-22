@@ -18,6 +18,7 @@ fi
 # Use config values or defaults
 PHOTOS_DIR="${PHOTOS_DIR:-/Users/$USER/Pictures/OM Workspace}"
 LOG_DIR="${LOG_DIR:-$(dirname "$0")/Logs/}"
+AUTO_FIX_PERMISSIONS="${AUTO_FIX_PERMISSIONS:-0}"
 
 # Seen-files tracking log
 SEEN_LOG="$LOG_DIR/seen-files.txt"
@@ -43,12 +44,13 @@ echo
 echo "  What would you like to do?"
 echo
 echo "    [i]  Import from SD card + Rename + Log"
-echo "    [r]  Just Rename + Log (skip import)"
+echo "    [r]  Rename + Log (skip import, use config folder)"
+echo "    [l]  Rename in place (any folder, no logging)"
 echo
-printf "👉 Choose [i/r]: "
+printf "👉 Choose [i/r/l]: "
 read -r mode
 
-if [[ "$mode" != "i" && "$mode" != "I" && "$mode" != "r" && "$mode" != "R" ]]; then
+if [[ "$mode" != "i" && "$mode" != "I" && "$mode" != "r" && "$mode" != "R" && "$mode" != "l" && "$mode" != "L" ]]; then
   echo "❌ Invalid selection. Exiting."
   exit 1
 fi
@@ -60,6 +62,39 @@ fi
 CAMERA_IMPORT_DIR=""
 SELECTED_NAME=""
 SELECTED_SIZE=""
+LOCAL_MODE=0
+
+if [[ "$mode" == "l" || "$mode" == "L" ]]; then
+  LOCAL_MODE=1
+  echo
+  echo "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
+  echo "┃  📁 LOCAL FOLDER MODE                             ┃"
+  echo "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
+  echo
+  printf "👉 Enter the full path to the folder: "
+  read -r LOCAL_FOLDER
+  
+  if [[ ! -d "$LOCAL_FOLDER" ]]; then
+    echo "❌ Error: Folder not found: $LOCAL_FOLDER"
+    exit 1
+  fi
+  
+  PHOTOS_DIR="$LOCAL_FOLDER"
+  echo
+  echo "✅ Selected folder: $PHOTOS_DIR"
+  echo
+  
+  printf "👉 Enable logging? [y/n]: "
+  read -r enable_log
+  if [[ "$enable_log" != "y" && "$enable_log" != "Y" ]]; then
+    SKIP_LOGGING=1
+    echo "  📝 Logging disabled"
+  else
+    SKIP_LOGGING=0
+    echo "  📝 Logging enabled"
+  fi
+  echo
+fi
 
 if [[ "$mode" == "i" || "$mode" == "I" ]]; then
   echo
@@ -185,101 +220,131 @@ fi
 # VALIDATION & SETUP
 # ═══════════════════════════════════════════════════════════════════════════
 
-# Check if exiftool is installed
-if ! command -v exiftool &> /dev/null; then
-  echo "❌ Error: exiftool is not installed."
-  echo "   Install it with: brew install exiftool"
-  exit 1
-fi
-
-if [[ ! -d "$PHOTOS_DIR" ]]; then
-  echo "❌ Error: Photos directory not found: $PHOTOS_DIR"
-  echo "   Creating directory..."
-  mkdir -p "$PHOTOS_DIR"
-  if [[ ! -d "$PHOTOS_DIR" ]]; then
-    echo "❌ Failed to create directory. Exiting."
+# Check dependencies
+check_exiftool() {
+  if ! command -v exiftool &> /dev/null; then
+    echo "❌ Error: exiftool is not installed."
+    echo "   Install it with: brew install exiftool"
     exit 1
   fi
-  echo "✅ Created directory: $PHOTOS_DIR"
-fi
+}
 
-# Only check CAMERA_IMPORT_DIR if we're in import mode
+# Fix ownership permissions on photos directory and files
+fix_permissions() {
+  local dir="$1"
+  
+  # Check if directory is writable
+  if [[ ! -w "$dir" ]]; then
+    echo "⚠️  Permission issue: you don't own $dir"
+    
+    if [[ "${AUTO_FIX_PERMISSIONS:-0}" == "1" ]]; then
+      echo "   Auto-fixing permissions..."
+      sudo chown -R "$(whoami)" "$dir" 2>/dev/null && echo "✅ Permissions fixed" || echo "❌ Failed"
+    else
+      printf "👉 Fix permissions? [Y/n]: "
+      read -r fix_choice
+      if [[ "$fix_choice" == "" || "$fix_choice" == "y" || "$fix_choice" == "Y" ]]; then
+        sudo chown -R "$(whoami)" "$dir" 2>/dev/null && echo "✅ Permissions fixed" || echo "❌ Failed"
+      fi
+    fi
+    return
+  fi
+  
+  # Check for files owned by root (common when copying from SD/external drives)
+  local root_files=$(find "$dir" -maxdepth 1 -type f -user root 2>/dev/null | head -5)
+  if [[ -n "$root_files" ]]; then
+    local root_count=$(find "$dir" -maxdepth 1 -type f -user root 2>/dev/null | wc -l | tr -d ' ')
+    echo "⚠️  Found $root_count files owned by root (from external drive)"
+    
+    if [[ "${AUTO_FIX_PERMISSIONS:-0}" == "1" ]]; then
+      echo "   Auto-fixing file ownership..."
+      if sudo chown -R "$(whoami)" "$dir" 2>/dev/null; then
+        echo "✅ File ownership fixed"
+      else
+        echo "❌ Could not fix permissions"
+        exit 1
+      fi
+    else
+      printf "👉 Fix file ownership? [Y/n]: "
+      read -r fix_choice
+      if [[ "$fix_choice" == "" || "$fix_choice" == "y" || "$fix_choice" == "Y" ]]; then
+        if sudo chown -R "$(whoami)" "$dir" 2>/dev/null; then
+          echo "✅ File ownership fixed"
+        else
+          echo "❌ Could not fix permissions"
+          exit 1
+        fi
+      else
+        echo "❌ Cannot rename files without ownership. Exiting."
+        exit 1
+      fi
+    fi
+  fi
+}
+
+# Setup directories for standard modes (not local mode)
+setup_directories() {
+  if [[ $LOCAL_MODE -eq 1 ]]; then
+    # For local mode, just check/fix permissions on the specified folder
+    fix_permissions "$PHOTOS_DIR"
+    return 0
+  fi
+  
+  # Ensure photos directory exists
+  if [[ ! -d "$PHOTOS_DIR" ]]; then
+    echo "📁 Creating photos directory: $PHOTOS_DIR"
+    mkdir -p "$PHOTOS_DIR"
+    if [[ ! -d "$PHOTOS_DIR" ]]; then
+      echo "❌ Failed to create photos directory. Exiting."
+      exit 1
+    fi
+    echo "✅ Photos directory created"
+  fi
+  
+  # Fix permissions if needed
+  fix_permissions "$PHOTOS_DIR"
+  
+  # Ensure log directory exists
+  if [[ ! -d "$LOG_DIR" ]]; then
+    echo "📁 Creating log directory: $LOG_DIR"
+    mkdir -p "$LOG_DIR"
+    if [[ ! -d "$LOG_DIR" ]]; then
+      echo "❌ Failed to create log directory. Exiting."
+      exit 1
+    fi
+    echo "✅ Log directory created"
+  fi
+  
+  # Ensure seen-files log exists
+  if [[ ! -f "$SEEN_LOG" ]]; then
+    echo "📝 Creating seen-files log: $SEEN_LOG"
+    touch "$SEEN_LOG"
+    echo "✅ Log file created"
+  fi
+}
+
+# Run setup
+check_exiftool
+setup_directories
+
+# Check SD card path if in import mode
 if [[ -n "$CAMERA_IMPORT_DIR" && ! -d "$CAMERA_IMPORT_DIR" ]]; then
   echo "❌ Error: SD card path not found: $CAMERA_IMPORT_DIR"
   exit 1
 fi
 
-# Ensure log directory exists
-if [[ ! -d "$LOG_DIR" ]]; then
-  echo "📁 Creating log directory: $LOG_DIR"
-  mkdir -p "$LOG_DIR"
-  if [[ ! -d "$LOG_DIR" ]]; then
-    echo "❌ Failed to create log directory. Exiting."
-    exit 1
-  fi
-  echo "✅ Log directory created"
-fi
-
-# Ensure seen-files log exists
-if [[ ! -f "$SEEN_LOG" ]]; then
-  echo "📝 Creating seen-files log: $SEEN_LOG"
-  touch "$SEEN_LOG"
-  echo "✅ Log file created"
-fi
-
 # ═══════════════════════════════════════════════════════════════════════════
-# TEMPORARY: BUILD FULL LOG FROM EXISTING FILES
+# OPTIONAL: BUILD LOG FROM EXISTING FILES
 # ═══════════════════════════════════════════════════════════════════════════
-# 
-# This section scans your photos folder and adds ALL existing renamed files
-# to the log file. This is useful if you already have renamed files in your
-# folder that weren't logged when they were renamed.
 #
-# INSTRUCTIONS:
-# 1. Uncomment the code block below (remove the # from each line)
-# 2. Run the script once
-# 3. After it completes, comment the code block back out (add # to each line)
-# 4. This only needs to be run once to build your initial log file
+# Set BUILD_LOG_FROM_EXISTING=1 in config.sh or run with:
+#   BUILD_LOG_FROM_EXISTING=1 ./PhotoImportPipeline.sh
 #
+# This scans your photos folder and adds ALL existing renamed files
+# to the log file. Useful if you already have renamed files that
+# weren't logged when they were renamed. Only needs to run once.
 # ═══════════════════════════════════════════════════════════════════════════
 
-# Uncomment the lines below to build the full log from existing files:
-echo
-echo "🔍 Building log from existing renamed files in folder..."
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo
-
-existing_renamed_files=()
-while IFS= read -r line; do
-  filename=$(basename "$line")
-  
-  if [[ "$filename" =~ ^[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3}\.(ORF|JPG)$ ]]; then
-    existing_renamed_files+=("$filename")
-  fi
-done < <(find "$PHOTOS_DIR" -maxdepth 1 -type f \( -iname '*.ORF' -o -iname '*.JPG' \) -print 2>/dev/null | sort)
-
-echo "  Found ${#existing_renamed_files[@]} renamed files in folder"
-echo
-
-added_to_log=0
-for file in "${existing_renamed_files[@]}"; do
-  if ! grep -Fxq "$file" "$SEEN_LOG" 2>/dev/null; then
-    echo "$file" >> "$SEEN_LOG"
-    ((added_to_log++))
-  fi
-done
-
-sort -u "$SEEN_LOG" -o "$SEEN_LOG"
-
-echo "  ✅ Added $added_to_log new files to log"
-echo "  📄 Log now contains $(wc -l < "$SEEN_LOG" | tr -d ' ') total files"
-echo
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo
-
-# ═══════════════════════════════════════════════════════════════════════════
-# END TEMPORARY CODE - Comment out the above block after running once
-# ═══════════════════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════════════════
 # IMPORT → RENAME → LOG PIPELINE
@@ -287,17 +352,25 @@ echo
 
 echo "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
 if [[ -n "$CAMERA_IMPORT_DIR" ]]; then
-  echo "┃  📸 IMPORT → RENAME → LOG PIPELINE               ┃"
+    echo "┃  📸 IMPORT → RENAME → LOG PIPELINE                ┃"
+elif [[ $LOCAL_MODE -eq 1 ]]; then
+  if [[ $SKIP_LOGGING -eq 1 ]]; then
+    echo "┃  📸 RENAME IN PLACE (no logging)                  ┃"
+  else
+    echo "┃  📸 RENAME IN PLACE + LOG                         ┃"
+  fi
 else
-  echo "┃  📸 RENAME → LOG PIPELINE                        ┃"
+echo "┃  📸 RENAME → LOG PIPELINE                         ┃"
 fi
 echo "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
 echo
-echo "  📂 Destination:    $PHOTOS_DIR"
+echo "  📂 Working folder: $PHOTOS_DIR"
 if [[ -n "$CAMERA_IMPORT_DIR" ]]; then
   echo "  📂 Source (SD):     $CAMERA_IMPORT_DIR ($SELECTED_NAME)"
 fi
-echo "  📂 Log folder:      $LOG_DIR"
+if [[ $LOCAL_MODE -eq 0 ]]; then
+  echo "  📂 Log folder:      $LOG_DIR"
+fi
 echo
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo
@@ -514,10 +587,18 @@ if [[ "$rename_choice" != "n" && "$rename_choice" != "N" ]]; then
   fi
 fi
 
-# STEP 3: LOGGING
-echo "Step 3: Logging renamed files..."
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo
+# ═══════════════════════════════════════════════════════════════════════════
+# LOGGING (skip if local mode with no logging)
+# ═══════════════════════════════════════════════════════════════════════════
+
+if [[ $LOCAL_MODE -eq 1 && $SKIP_LOGGING -eq 1 ]]; then
+  echo "Step 3: Logging skipped (disabled)"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo
+else
+  echo "Step 3: Logging renamed files..."
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo
 
 # Use tracked files if available (fast), otherwise scan (slower but comprehensive)
 if [[ ${#newly_renamed_files[@]} -gt 0 ]]; then
@@ -569,6 +650,7 @@ else
   echo "  📝 Log file: $SEEN_LOG"
   echo
 fi
+fi
 
 echo "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
 echo "┃  🎉 PIPELINE COMPLETE!                             ┃"
@@ -576,11 +658,18 @@ echo "┗━━━━━━━━━━━━━━━━━━━━━━━�
 echo
 if [[ -n "$CAMERA_IMPORT_DIR" ]]; then
   echo "  📸 ${#newly_renamed[@]} files imported, renamed & logged"
+elif [[ $LOCAL_MODE -eq 1 ]]; then
+  if [[ $SKIP_LOGGING -eq 1 ]]; then
+    echo "  📸 ${#newly_renamed[@]} files renamed in place"
+  else
+    echo "  📸 ${#newly_renamed[@]} files renamed in place & logged"
+  fi
 else
   echo "  📸 ${#newly_renamed[@]} files renamed & logged"
 fi
-echo "  📝 Seen-files log: $SEEN_LOG"
+if [[ $LOCAL_MODE -eq 0 || $SKIP_LOGGING -eq 0 ]]; then
+  echo "  📝 Seen-files log: $SEEN_LOG"
+fi
 echo
 
 exit 0
-

@@ -8,3 +8,7 @@ PHOTOS_DIR="/Users/YOUR_USERNAME/Pictures/OM Workspace"
 
 # Logging and tracking folder
 LOG_DIR="/Users/YOUR_USERNAME/Misc/Photo Final/Logs/"
+
+# Auto-fix file ownership without prompting (0=ask, 1=auto-fix)
+# Set to 1 if you frequently get permission errors from files copied as root
+AUTO_FIX_PERMISSIONS=0
