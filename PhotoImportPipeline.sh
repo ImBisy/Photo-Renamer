@@ -6,14 +6,18 @@
 # ═══════════════════════════════════════════════════════════════════════════
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# CONFIGURATION - EDIT THESE PATHS
+# CONFIGURATION - Load from external file
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# Primary photo destination (where files are renamed and stored)
-PHOTOS_DIR="/Users/charlieichikowitz/Pictures/OM Workspace"
+CONFIG_FILE="$(dirname "$0")/config.sh"
 
-# Logging and tracking folder
-LOG_DIR="/Users/charlieichikowitz/Misc/Photo Final/Logs/"
+if [[ -f "$CONFIG_FILE" ]]; then
+    source "$CONFIG_FILE"
+fi
+
+# Use config values or defaults
+PHOTOS_DIR="${PHOTOS_DIR:-/Users/$USER/Pictures/OM Workspace}"
+LOG_DIR="${LOG_DIR:-$(dirname "$0")/Logs/}"
 
 # Seen-files tracking log
 SEEN_LOG="$LOG_DIR/seen-files.txt"

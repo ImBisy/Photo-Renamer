@@ -1,0 +1,10 @@
+#!/bin/zsh
+
+# Personal configuration file for PhotoImportPipeline.sh
+# Copy this file to config.sh and edit the paths below
+
+# Primary photo destination (where files are renamed and stored)
+PHOTOS_DIR="/Users/YOUR_USERNAME/Pictures/OM Workspace"
+
+# Logging and tracking folder
+LOG_DIR="/Users/YOUR_USERNAME/Misc/Photo Final/Logs/"

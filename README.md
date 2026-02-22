@@ -34,19 +34,23 @@ cd "Photo-Renamer"
 4. Unzip the file and put it somewhere safe (like your Documents folder)
 5. Open Terminal and type `cd ` (with a space), then drag the folder into Terminal and press Enter
 
-### 3. Set Up the Script
+### 3. Set Up Your Config File
 
-1. Open `PhotoImportPipeline.sh` in a text editor (double-click it or open in TextEdit/VS Code)
-2. Find these lines near the top (around lines 12-16):
+1. Copy the template file:
+
+   ```bash
+   cp config.sh.template config.sh
+   ```
+
+2. Open `config.sh` in a text editor and edit the paths:
 
 ```bash
 PHOTOS_DIR="/Users/YOUR_USERNAME/Pictures/Your Photo Folder"
 LOG_DIR="/Users/YOUR_USERNAME/Photo-Renamer/Logs/"
 ```
 
-3. Change `YOUR_USERNAME` to your actual Mac username
-4. Change `Your Photo Folder` to where you want photos saved (or leave it as-is—the script will create the folder)
-5. **Save the file**
+3. Replace `YOUR_USERNAME` with your actual Mac username
+4. The `config.sh` file is private (not committed to GitHub) — your username stays local only
 
 ### 4. Make It Run
 

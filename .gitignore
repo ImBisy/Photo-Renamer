@@ -1,3 +1,6 @@
+# Personal configuration (keeps your username/paths private)
+config.sh
+
 # Log files
 *.log
 *.txt
