@@ -1,224 +1,162 @@
 # Photo Renamer 📸
 
-**Automatically import, rename, and organize your camera photos in one step.**
+**Automatically import, rename, and organise your camera photos in one step… because manually sorting 4,000 shots is how photographers develop existential dread.** (and also sort by date captured is annoying)
 
-This script takes photos from your camera's SD card, copies them to your computer, and renames them with the date they were taken—like `25-12-25-001.ORF` for a photo taken on December 25, 2025.
+This script grabs photos from your camera’s SD card, copies them over, and renames them with the date—like `25-12-25-001.ORF` for that blurry Christmas dinner masterpiece from 25 December 2025.
+
+Look, I built this instead of doing my Photography GCSE bookwork. Dead serious. Annotations could wait. scripting sane filenames felt actually decent. So, your photos get sorted, and my sanity (barely) survives. Win-win.
 
 ---
 
-## Quick Start (Do This First!)
+## Quick Start (Do This First or Suffer)
 
-### 1. Install Homebrew and exiftool
+### 1. Install Homebrew, exiftool and Git
 
-Open Terminal (press `Cmd + Space`, type "Terminal", press Enter), then run:
+Open Terminal and paste this (it's safe i swear):
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew install exiftool
+brew install git
 ```
 
-### 2. Download This Script
+It’ll probably ask for your password. macOS being extra, not a virus.
 
-**Option A: Using Git (Recommended)**
+### 2. Download the Script
 
 ```bash
 git clone https://github.com/ImBisy/Photo-Renamer.git
-cd "Photo-Renamer"
+cd Photo-Renamer
 ```
 
-**Option B: Manual Download**
+### 3. Set Up the Config File
 
-1. Go to https://github.com/ImBisy/Photo-Renamer
-2. Click the green **"Code"** button
-3. Select **"Download ZIP"**
-4. Unzip the file and put it somewhere safe (like your Documents folder)
-5. Open Terminal and type `cd ` (with a space), then drag the folder into Terminal and press Enter
+```bash
+cp config.sh.template config.sh
+```
 
-### 3. Set Up Your Config File
-
-1. Copy the template file:
-
-   ```bash
-   cp config.sh.template config.sh
-   ```
-
-2. Open `config.sh` in a text editor and edit the paths:
+Open `config.sh` and fix the paths (don’t skip this and think it isn't working):
 
 ```bash
 PHOTOS_DIR="/Users/YOUR_USERNAME/Pictures/Your Photo Folder"
 LOG_DIR="/Users/YOUR_USERNAME/Photo-Renamer/Logs/"
 ```
 
-3. Replace `YOUR_USERNAME` with your actual Mac username
-4. The `config.sh` file is private (not committed to GitHub) — your username stays local only
+Swap `YOUR_USERNAME` for your actual Mac username. Config stays local only. GitHub never sees your chaotic folder / user names.
 
-### 4. Make It Run
-
-In Terminal, run this command (while inside the Photo-Renamer folder):
+### 4. Make It Executable
 
 ```bash
 chmod +x PhotoImportPipeline.sh
 ```
 
-This tells your Mac it's okay to run this script.
+Unix for “stop being a coward and run this sh\*t”.
 
 ---
 
 ## How to Use It
 
-### Every Time You Import Photos
+1. Connect camera via USB (select Mass Storage/Storage mode) or insert SD card
+2. Wait a few seconds till it pops up in Finder → Locations
+3. Terminal → navigate to Photo-Renamer folder
+4. Run it:
+   - Double-click `PhotoImportPipeline.sh` in Finder (easiest for most)
+   - Or Terminal: `./PhotoImportPipeline.sh`  
+     (Pro move: drag to Dock for one-click launches)
+5. Prompts:
+   - `i` → import from camera
+   - Pick SD card by number
+   - `y` → yes, rename the damn things
 
-1. **Connect your camera** via USB (or insert the SD card)
-2. **Wait 5-10 seconds** for it to show up in Finder
-3. **Open Terminal** and go to the Photo-Renamer folder
-4. **Run the script:**
-   ```bash
-   ./PhotoImportPipeline.sh
-   ```
-5. **Follow the prompts:**
-   - Type `i` to import from your camera
-   - Pick your SD card from the list (type the number)
-   - Type `y` to rename the files
-
-That's it! Your photos will be copied, renamed with dates, and organized.
+Photos copied, dated, numbered. Breathe.
 
 ---
 
-## What Each Option Means
+## What Each Option Does
 
-When the script asks you to choose, here's what to pick:
-
-| Option | What It Does             | When to Use                                                |
-| ------ | ------------------------ | ---------------------------------------------------------- |
-| `i`    | Import + Rename + Log    | **Most common** - when you have new photos on your camera  |
-| `r`    | Just Rename + Log        | When photos are already on your computer and need renaming |
-| `t`    | Test mode (preview only) | Want to see what would happen without actually doing it    |
-| `y`    | Yes, rename files        | **Most common** - actually rename the files                |
-| `n`    | Skip renaming            | Don't rename anything this time                            |
+| Option | What It Does                    | When to Use                                   |
+| ------ | ------------------------------- | --------------------------------------------- |
+| `i`    | Import + Rename + Log           | New photos from camera (your usual chaos)     |
+| `r`    | Rename + Log only               | Files already dumped on computer, need fixing |
+| `t`    | Test mode (preview, no changes) | Paranoid testing                              |
+| `y`    | Yes, rename files               | Actually commit to the cleanup                |
+| `n`    | No, skip renaming               | Copy/preview only, keep the mess for now      |
 
 ---
 
-## File Naming Explained
+## File Naming Format
 
-Your photos will be renamed from this:
+From tragic:
 
 ```
 DSC_0123.ORF
 IMG_4567.JPG
 ```
 
-To this:
+To civilised:
 
 ```
-25-12-25-001.ORF  (December 25, 2025 - photo #1)
-25-12-25-002.JPG  (December 25, 2025 - photo #2)
+25-12-25-001.ORF    ← 25 December 2025, shot #1
+25-12-25-002.JPG    ← 25 December 2025, shot #2
 ```
 
-The format is: `YY-MM-DD-###.ext`
-
-- **YY** = Year (25 = 2025)
-- **MM** = Month (12 = December)
-- **DD** = Day (25 = 25th)
-- **###** = Photo number for that day (001, 002, etc.)
+Format: `YY-MM-DD-###.ext`  
+Because random numbering is a crime against organisation.
 
 ---
 
 ## Troubleshooting
 
-### "No external volumes detected"
+**"No external volumes detected"**  
+→ Camera ghosting you. Check Finder Locations, confirm USB Storage mode, replug, different cable, pray.
 
-**What it means:** Your camera or SD card isn't showing up.
+**"exiftool is not installed"**  
+→ `brew install exiftool` again. It’s needy like that.
+\*\*
 
-**Fix it:**
+**"Permission denied"**  
+→ Forgot `chmod +x`. Run it.
 
-1. Check that your camera appears in Finder (look under "Locations")
-2. On your camera, make sure USB mode is set to "Storage" or "Mass Storage" (not "PC Auto" or "MTP")
-3. Try unplugging and plugging it back in
-4. Wait 10 seconds after plugging in before running the script
+**"Photos directory not found"**  
+→ Paths wrong in `config.sh`. Fix or `mkdir` manually.
 
-### "exiftool is not installed"
-
-**Fix it:**
-
-```bash
-brew install exiftool
-```
-
-### "Permission denied"
-
-**Fix it:**
-
-```bash
-chmod +x PhotoImportPipeline.sh
-```
-
-### "Photos directory not found"
-
-**Fix it:**
-The script will try to create the folder automatically. If it can't:
-
-1. Check that the path in the script is correct (Step 3 in Quick Start)
-2. Make sure your username is spelled correctly
-3. Create the folder manually if needed
-
-### Camera keeps disconnecting
-
-**Try this:**
-
-- Use a different USB cable
-- Plug directly into your Mac (not through a USB hub)
-- Make sure your camera battery is charged
+Camera disconnects randomly? → Better cable, no hub, charge battery, blame Olympus.
 
 ---
 
-## Optional: Build Log from Existing Photos
+## Optional but Recommended: Build Log from Existing Photos
 
-**Only do this if you already have photos in the format `25-12-25-001.ORF` that weren't processed by this script.**
-
-1. Open `PhotoImportPipeline.sh` in a text editor
-2. Find the section that says `TEMPORARY: BUILD FULL LOG FROM EXISTING FILES` (around line 225)
-3. Remove the `#` from the beginning of each line in that section (or use Cmd+/ in VS Code to uncomment)
-4. Save and run the script once
-5. **Important:** Add the `#` back to each line when done (so it doesn't run every time)
-
-This creates a log of your existing photos so the script knows what's already there.
+Got old files already in `YY-MM-DD-###.ext` format that this script never touched? Note: This feature is not yet implemented in the current version. To manually build the log, you can scan your photos folder and add filenames to `Logs/seen-files.txt`.
 
 ---
 
-## What Gets Created
-
-After running the script, you'll have:
+## What Gets Created (Hopefully)
 
 ```
-📁 Your Photo Folder/           ← All your renamed photos
+Your Photo Folder/
    ├── 25-12-25-001.ORF
    ├── 25-12-25-002.JPG
    └── ...
 
-📁 Photo-Renamer/
-   ├── PhotoImportPipeline.sh  ← This script
+Photo-Renamer/
+   ├── PhotoImportPipeline.sh
    └── Logs/
-       └── seen-files.txt     ← List of processed files
+       └── seen-files.txt      ← the receipts
 ```
 
 ---
 
 ## Requirements
 
-- **Mac computer** (this won't work on Windows)
-- **macOS Catalina or later** (2019+)
-- **Olympus, or other camera that saves ORF/JPG files**
-- **Internet connection** (only needed for initial setup)
+- Mac on macOS Catalina or later
+- Olympus (or similar) camera spitting ORF/JPG files (only properly tested on Olympus, ymmv)
+- Internet once (Homebrew setup)
 
 ---
 
 ## Need Help?
 
-1. Read the error message carefully—it usually tells you exactly what's wrong
-2. Check the Troubleshooting section above
-3. Make sure you've completed all 4 steps in Quick Start
-4. Double-check your folder paths in the script
-
----
+Read the damn error, hit Troubleshooting, triple-check config paths, confirm Quick Start.
+Still screwed? Open an issue on GitHub, then if I don't respond DM me on Reddit at u/Diligent-Register556 saying you opened an issue - I don’t bite (unprovoked).
 
 GitHub: https://github.com/ImBisy/Photo-Renamer
