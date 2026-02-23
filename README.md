@@ -105,14 +105,14 @@ Because random numbering is a crime against organisation.
 
 ---
 
-## Troubleshooting
+<details>
+<summary>Troubleshooting</summary>
 
 **"No external volumes detected"**  
 → Camera ghosting you. Check Finder Locations, confirm USB Storage mode, replug, different cable, pray.
 
 **"exiftool is not installed"**  
 → `brew install exiftool` again. It’s needy like that.
-\*\*
 
 **"Permission denied"**  
 → Forgot `chmod +x`. Run it.
@@ -121,6 +121,8 @@ Because random numbering is a crime against organisation.
 → Paths wrong in `config.sh`. Fix or `mkdir` manually.
 
 Camera disconnects randomly? → Better cable, no hub, charge battery, blame Olympus.
+
+</details>
 
 ---
 
@@ -149,14 +151,14 @@ Photo-Renamer/
 ## Requirements
 
 - Mac on macOS Catalina or later
-- Olympus (or similar) camera spitting ORF/JPG files (only properly tested on Olympus, ymmv)
+- Olympus (or similar) camera spitting ORF/JPG and other raw formats (CR2, CR3, NEF, NRW, ARW, SR2, SRF, RAF, RW2, PEF, PTX, DNG, RWL, 3FR, IIQ, X3F) files (only properly tested on Olympus, Your MMV)
 - Internet once (Homebrew setup)
 
 ---
 
 ## Need Help?
 
-Read the damn error, hit Troubleshooting, triple-check config paths, confirm Quick Start.
+Read the error, hit Troubleshooting, triple-check config paths, confirm Quick Start.
 Still screwed? Open an issue on GitHub, then if I don't respond DM me on Reddit at u/Diligent-Register556 saying you opened an issue - I don’t bite (unprovoked).
 
 GitHub: https://github.com/ImBisy/Photo-Renamer

@@ -27,7 +27,7 @@ SEEN_LOG="$LOG_DIR/seen-files.txt"
 RENAME_LOG="$LOG_DIR/rename-log.txt"
 
 # File types to process
-FILE_EXTENSIONS=('*.ORF' '*.JPG' '*.XMP')
+FILE_EXTENSIONS=('*.ORF' '*.JPG' '*.CR2' '*.CR3' '*.NEF' '*.NRW' '*.ARW' '*.SR2' '*.SRF' '*.RAF' '*.RW2' '*.PEF' '*.PTX' '*.DNG' '*.RWL' '*.3FR' '*.IIQ' '*.X3F' '*.XMP')
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # END OF CONFIGURATION
@@ -141,7 +141,7 @@ if [[ "$mode" == "i" || "$mode" == "I" ]]; then
 
     # Check if volume contains camera files (ORF, JPG, etc.) - helps identify camera
     has_camera_files=0
-    if find "$vol" -maxdepth 3 -type f \( -iname '*.ORF' -o -iname '*.JPG' -o -iname '*.CR2' -o -iname '*.NEF' -o -iname '*.ARW' \) 2>/dev/null | head -1 | read; then
+    if find "$vol" -maxdepth 3 -type f \( -iname '*.ORF' -o -iname '*.JPG' -o -iname '*.CR2' -o -iname '*.CR3' -o -iname '*.NEF' -o -iname '*.NRW' -o -iname '*.ARW' -o -iname '*.SR2' -o -iname '*.SRF' -o -iname '*.RAF' -o -iname '*.RW2' -o -iname '*.PEF' -o -iname '*.PTX' -o -iname '*.DNG' -o -iname '*.RWL' -o -iname '*.3FR' -o -iname '*.IIQ' -o -iname '*.X3F' \) 2>/dev/null | head -1 | read; then
       has_camera_files=1
     fi
 
@@ -390,7 +390,7 @@ if [[ -n "$CAMERA_IMPORT_DIR" ]]; then
   files_to_import=()
   while IFS= read -r line; do
     files_to_import+=("$line")
-  done < <(find "$CAMERA_IMPORT_DIR" -type f \( -iname '*.ORF' -o -iname '*.JPG' -o -iname '*.XMP' \) ! -path "*/.Spotlight-V100/*" ! -path "*/.Trashes/*" ! -path "*/.fseventsd/*" ! -path "*/.VolumeIcon.icns" -print 2>/dev/null)
+  done < <(find "$CAMERA_IMPORT_DIR" -type f \( -iname '*.ORF' -o -iname '*.JPG' -o -iname '*.CR2' -o -iname '*.CR3' -o -iname '*.NEF' -o -iname '*.NRW' -o -iname '*.ARW' -o -iname '*.SR2' -o -iname '*.SRF' -o -iname '*.RAF' -o -iname '*.RW2' -o -iname '*.PEF' -o -iname '*.PTX' -o -iname '*.DNG' -o -iname '*.RWL' -o -iname '*.3FR' -o -iname '*.IIQ' -o -iname '*.X3F' -o -iname '*.XMP' \) ! -path "*/.Spotlight-V100/*" ! -path "*/.Trashes/*" ! -path "*/.fseventsd/*" ! -path "*/.VolumeIcon.icns" -print 2>/dev/null)
 
   if [[ ${#files_to_import[@]} -eq 0 ]]; then
     echo "  ⚠️  No camera files found on SD card."
@@ -487,15 +487,15 @@ if [[ "$rename_choice" != "n" && "$rename_choice" != "N" ]]; then
   if [[ $selective -eq 1 ]]; then
     # Only process files NOT matching YY-MM-DD-###.ext pattern
     while IFS= read -r file; do
-      if [[ ! "$file" =~ ^[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3}\.(ORF|JPG)$ ]]; then
+      if [[ ! "$file" =~ ^[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3}\.(ORF|JPG|CR2|CR3|NEF|NRW|ARW|SR2|SRF|RAF|RW2|PEF|PTX|DNG|RWL|3FR|IIQ|X3F)$ ]]; then
         files_to_process+=("$file")
       fi
-    done < <(find . -maxdepth 1 \( -iname "*.ORF" -o -iname "*.JPG" \) | sed 's|^\./||' | sort)
+    done < <(find . -maxdepth 1 \( -iname "*.ORF" -o -iname "*.JPG" -o -iname "*.CR2" -o -iname "*.CR3" -o -iname "*.NEF" -o -iname "*.NRW" -o -iname "*.ARW" -o -iname "*.SR2" -o -iname "*.SRF" -o -iname "*.RAF" -o -iname "*.RW2" -o -iname "*.PEF" -o -iname "*.PTX" -o -iname "*.DNG" -o -iname "*.RWL" -o -iname "*.3FR" -o -iname "*.IIQ" -o -iname "*.X3F" \) | sed 's|^\./||' | sort)
   else
     # Process ALL primary files
     while IFS= read -r file; do
       files_to_process+=("$file")
-    done < <(find . -maxdepth 1 \( -iname "*.ORF" -o -iname "*.JPG" \) | sed 's|^\./||' | sort)
+    done < <(find . -maxdepth 1 \( -iname "*.ORF" -o -iname "*.JPG" -o -iname "*.CR2" -o -iname "*.CR3" -o -iname "*.NEF" -o -iname "*.NRW" -o -iname "*.ARW" -o -iname "*.SR2" -o -iname "*.SRF" -o -iname "*.RAF" -o -iname "*.RW2" -o -iname "*.PEF" -o -iname "*.PTX" -o -iname "*.DNG" -o -iname "*.RWL" -o -iname "*.3FR" -o -iname "*.IIQ" -o -iname "*.X3F" \) | sed 's|^\./||' | sort)
   fi
 
   # Process each PRIMARY file
@@ -537,8 +537,8 @@ if [[ "$rename_choice" != "n" && "$rename_choice" != "N" ]]; then
         mv "$file" "$newfile"
         echo "  ✅ Renamed: '$file' → '$newfile'"
         ((renamed_count++))
-        # Track this renamed file for logging (only ORF and JPG, not XMP)
-        if [[ "$newfile" =~ \.(ORF|JPG)$ ]]; then
+        # Track this renamed file for logging (only primary raw files, not XMP)
+        if [[ "$newfile" =~ \.(ORF|JPG|CR2|CR3|NEF|NRW|ARW|SR2|SRF|RAF|RW2|PEF|PTX|DNG|RWL|3FR|IIQ|X3F)$ ]]; then
           newly_renamed_files+=("$newfile")
         fi
       else
@@ -611,13 +611,13 @@ else
   after_files=()
   while IFS= read -r line; do
     after_files+=("$line")
-  done < <(find "$PHOTOS_DIR" -maxdepth 1 -type f \( -iname '*.ORF' -o -iname '*.JPG' \) -print 2>/dev/null | sort)
+  done < <(find "$PHOTOS_DIR" -maxdepth 1 -type f \( -iname '*.ORF' -o -iname '*.JPG' -o -iname '*.CR2' -o -iname '*.CR3' -o -iname '*.NEF' -o -iname '*.NRW' -o -iname '*.ARW' -o -iname '*.SR2' -o -iname '*.SRF' -o -iname '*.RAF' -o -iname '*.RW2' -o -iname '*.PEF' -o -iname '*.PTX' -o -iname '*.DNG' -o -iname '*.RWL' -o -iname '*.3FR' -o -iname '*.IIQ' -o -iname '*.X3F' \) -print 2>/dev/null | sort)
 
   # Find files matching YY-MM-DD-###.ext pattern
   newly_renamed=()
   for file in "${after_files[@]}"; do
     filename=$(basename "$file")
-    if [[ "$filename" =~ ^[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3}\.(ORF|JPG)$ ]]; then
+    if [[ "$filename" =~ ^[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3}\.(ORF|JPG|CR2|CR3|NEF|NRW|ARW|SR2|SRF|RAF|RW2|PEF|PTX|DNG|RWL|3FR|IIQ|X3F)$ ]]; then
       newly_renamed+=("$filename")
     fi
   done
