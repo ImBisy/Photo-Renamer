@@ -4,8 +4,6 @@
 
 This script grabs photos from your camera’s SD card, copies them over, and renames them with the date—like `25-12-25-001.ORF` for that blurry Christmas dinner masterpiece from 25 December 2025.
 
-Look, I built this instead of doing my Photography GCSE bookwork. Dead serious. Annotations could wait. scripting sane filenames felt actually decent. So, your photos get sorted, and my sanity (barely) survives. Win-win.
-
 ---
 
 ## Quick Start (Do This First or Suffer)
@@ -13,6 +11,8 @@ Look, I built this instead of doing my Photography GCSE bookwork. Dead serious. 
 ### 1. Install Homebrew, exiftool and Git
 
 Open Terminal and paste this (it's safe i swear):
+
+If you have homebrew installed already, skip the first command and just run the other two.
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -106,7 +106,7 @@ Because random numbering is a crime against organisation.
 ---
 
 <details>
-<summary>Troubleshooting</summary>
+<summary>###Troubleshooting</summary>
 
 **"No external volumes detected"**  
 → Camera ghosting you. Check Finder Locations, confirm USB Storage mode, replug, different cable, pray.
@@ -155,6 +155,13 @@ Photo-Renamer/
 - Internet once (Homebrew setup)
 
 ---
+
+## Coming Soon (Maybe. Idek anymore)
+
+- Turn this into a GUI app for easier point-and-click importing without terminal commands
+- Add undo functionality to revert renames in case of mistakes
+- Batch processing mode for organizing large existing photo collections
+- Add image preview for a few random photos in the sd card or folder
 
 ## Need Help?
 
